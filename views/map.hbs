@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+   crossorigin=""></script>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+</head>
+<body>
+    <label >Real Time Location Track BÖ.2021</label>
+    <div id="map" style="height: 800px; margin-top:50px; position:relative; outline:none;"></div>
+    <div id="distancetravelled"></div>
+<script>
+    state = {
+        location:{
+            x:null,
+            y:null,
+        }
+    }
+    let socket = io.connect('http://localhost:8080');
+    navigator.geolocation.getCurrentPosition((pos)=>{
+        this.state ={
+            location:{
+                x:{{p_x}},
+                y:pos.coords.longitude,
+            }
+        }
+        const position = [this.state.location.x, this.state.location.y]
+        socket.emit('Client_send_pos',position)
+        const map = L.map('map').setView(position, 10);
+
+        var icon1 = L.icon ({
+            iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+            shadowSize: [41, 41]
+        })
+        var icon2 = L.icon ({
+            iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+            shadowSize: [41, 41],
+        })
+        var icon3 = L.icon ({
+            iconUrl: "https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+            shadowSize: [41, 41],
+        })
+            
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        socket.on('send_mang_pos',(data)=>{
+            data.forEach((i,y,z)=>{
+                if(y <2){
+                L.marker(i,{icon:icon1})/*Blue*/
+                .addTo(map)
+                .bindPopup('hello '+i)
+                .openPopup();
+                }
+                else if(y <3){
+                L.marker(i,{icon:icon2})/*Red*/
+                .addTo(map)
+                .bindPopup('hello '+i)
+                .openPopup();
+                }
+                else if(y<4 || z<4){
+                L.marker(i,{icon:icon3})
+                .addTo(map)
+                .bindPopup('hello '+i)/*Yellow*/
+                .openPopup();
+                }
+                else
+                {
+                    alert('en fazla 4 kullanıcı bağlantı kurabilir.')
+                }
+                data[i] = true;
+                });  
+            });
+
+            socket.on('send_mang_pos',(data)=>{
+            data.forEach((i)=>{
+                    if(!data(i)){
+                        data[i].remove();
+                        delete data[i];
+                    }
+                });     
+            });
+        });
+</script>
+</body>
+</html>
